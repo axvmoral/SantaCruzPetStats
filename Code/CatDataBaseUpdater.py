@@ -41,17 +41,9 @@ df['FirstWeb'] = today
 df['LastDate'] = None
 print('Web Data Succesfully Retrieved')
 print('Updating Data Base...')
+VALUES = '(?' + ',?' * (len(df.columns) - 2)  + ')'
 con = sqlite3.connect('data/LostCatDataBase.db')
 cur = con.cursor()
-cur.execute(
-    '''
-    CREATE TABLE IF NOT EXISTS
-    WebData(ID PRIMARY KEY, Name TEXT, Gender TEXT,
-    Color TEXT, Breed TEXT, Age DECIMAL, Weight DECIMAL, Located TEXT,
-    EnterDate TEXT, Comment TEXT, Polarity REAL, InGroup INTEGER,
-    Treated INTEGER, RawGender INTEGER, FirstWeb TEXT, LastDate TEXT)
-    '''
-    )
 cur.execute(
     '''
     CREATE TABLE IF NOT EXISTS
@@ -61,31 +53,11 @@ cur.execute(
     Treated INTEGER, RawGender INTEGER, FirstWeb TEXT, LastDate TEXT)
     '''
     )
-for i in range(len(df)):
-    cur.execute(
-        '''
-        INSERT OR IGNORE INTO NewWebData VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', df.iloc[i,1:]
-    )
-cur.execute(
-    '''
-    SELECT WebData.ID FROM WebData OUTER LEFT JOIN NewWebData ON
-    WebData.ID = NewWebData.ID
-    '''
-    )
-NotOnWebSite = cur.fetchall()
-for entry in NotOnWebSite:
-    cur.execute('''
-UPDATE WebData SET LastDate = ? WHERE ID = ?
-''', (today, entry[0],))
-for i in range(len(df)):
-    cur.execute(
-        '''
-        INSERT OR IGNORE INTO WebData VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', df.iloc[i,1:]
-    )
+cur.executemany(f'INSERT INTO NewWebData VALUES{VALUES}', (row[1] for row in df.iloc[:,1:].iterrows()))
+cur.execute('SELECT WebData.ID FROM WebData LEFT JOIN NewWebData ON WebData.ID = NewWebData.ID WHERE NewWebData.ID IS NULL AND WebData.LastDate IS NULL')
+cur.executemany(f'UPDATE WebData SET LastDate = "{today}" WHERE ID = ?', cur.fetchall())
+cur.executemany(f'INSERT OR IGNORE INTO WebData VALUES{VALUES}', (row[1] for row in df.iloc[:,1:].iterrows()))
+cur.execute('DROP TABLE NewWebData')
 con.commit()
 con.close()
 print('Data Base Succesfully Updated')
