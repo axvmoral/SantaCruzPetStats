@@ -16,7 +16,7 @@ def age_getter(age: str) -> float:
         return None
     pattern = '([0-9]+) day[s]*\s*[old]*|([0-9]+) week[s]*\s*[old]*|([0-9]+) month[s]*\s*[old]*|([0-9]+) year[s]*\s*[old]*,*\s*([0-9]*)\s*[months old]*'
     re_list = [float(x) if x else 0 for x in re.findall(pattern, age)[0]]
-    return re_list[0] / 30 + re_list[1] / 4 + re_list[2] + re_list[3] / 12 + re_list[4]
+    return re_list[0] / 30 + re_list[1] / 4 + re_list[2] + re_list[3] * 12 + re_list[4]
 
 def group_det(text: str, degree: int) -> bool:
     if not text:
@@ -31,10 +31,9 @@ def group_det(text: str, degree: int) -> bool:
         return False
 
 def get_matches(type: str) -> int:
-    if type == 'lost.cat':
-        url = 'http://petharbor.com/results.asp?searchtype=LOST&start=4&friends=1&samaritans=1&nosuccess=0&rows=10&imght=120&imgres=Detail&tWidth=200&view=sysadm.v_sncr&nobreedreq=1&bgcolor=ffffff&text=000000&fontface=arial&fontsize=10&col_hdr_bg=c0c0c0&SBG=c0c0c0&miles=20&shelterlist=%27SNCR%27,%27SNCR1%27&atype=&where=type_CAT&PAGE=1'
-        soup = BeautifulSoup(requests.get(url).content, 'html.parser')
-        return int(re.findall('We found ([0-9]+) matches', soup.text)[0])
+    URL = f'http://petharbor.com/results.asp?searchtype=LOST&start=4&friends=1&samaritans=1&nosuccess=0&rows=10&imght=120&imgres=Detail&tWidth=200&view=sysadm.v_sncr&nobreedreq=1&bgcolor=ffffff&text=000000&fontface=arial&fontsize=10&col_hdr_bg=c0c0c0&SBG=c0c0c0&miles=20&shelterlist=%27SNCR%27,%27SNCR1%27&atype=&where=type_{type}&PAGE=1'
+    soup = BeautifulSoup(requests.get(URL).content, 'html.parser')
+    return int(re.findall('We found ([0-9]+) matches', soup.text)[0])
 
 def visit_links(links: list) -> list[list]:
     EnterDate, Comment, Polarity, InGroup = [], [], [], []
