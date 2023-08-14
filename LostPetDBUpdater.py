@@ -1,7 +1,10 @@
 import pandas as pd
 from HelperFunctions import *
-from datetime import date, datetime
+from datetime import datetime
 import sqlite3
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def UpdateLostPetDB(pet: str, db: str) -> None:
     lst = datetime.now()
