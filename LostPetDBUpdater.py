@@ -8,8 +8,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 def UpdateLostPetDB(pet: str, db: str, table) -> None:
     lst = datetime.now()
-    print(f'Commencing {table} Table Update...')
-    print('Retrieving Web Data...')
+    print(f'Updating {table} Table...')
     MATCHES = get_matches(type=pet)
     url = f'https://petharbor.com/results.asp?searchtype=LOST&start=4&friends=1&samaritans=1&nosuccess=0&rows={MATCHES}&imght=120&imgres=Detail&tWidth=200&view=sysadm.v_sncr&nobreedreq=1&bgcolor=ffffff&text=000000&fontface=arial&fontsize=10&col_hdr_bg=c0c0c0&SBG=c0c0c0&miles=20&shelterlist=%27SNCR%27,%27SNCR1%27&atype=&where=type_{pet}&PAGE=1'
     df = pd.read_html(
@@ -39,8 +38,6 @@ def UpdateLostPetDB(pet: str, db: str, table) -> None:
     TODAY = datetime.today().strftime('%Y-%m-%d')
     df['FirstWeb'] = TODAY
     df['LastDate'] = None
-    print('Web Data Succesfully Retrieved')
-    print(f'Updating {table}...')
     VALUES = '(?' + ',?' * (len(df.columns) - 2)  + ')'
     con = sqlite3.connect(db)
     cur = con.cursor()
