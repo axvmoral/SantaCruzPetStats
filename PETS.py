@@ -33,6 +33,23 @@ class PETS:
         )
         return None
 
+    def VisitLink(self, LINK: str) -> tuple[str]:
+        LINK_SOUP = BeautifulSoup(requests.get(LINK).content, "html.parser")
+        DETAIL_TABLES = LINK_SOUP.find_all("table", attrs={"class": "DetailTable"})
+        DESCRIPTION_TABLE = DETAIL_TABLES[0]
+        SHELTER_SINCE_SEARCH = re.search(
+            r"I have been at the shelter since(.+?)[.]", DESCRIPTION_TABLE.text, flags=re.IGNORECASE
+        )
+        SHELTER_SINCE = (
+            pd.to_datetime(SHELTER_SINCE_SEARCH.group(1)).date()
+            if SHELTER_SINCE_SEARCH is not None
+            else None
+        )
+        COMMENT_TABLE = DETAIL_TABLES[1]
+        COMMENT_SEARCH = re.search(r":(.+)", COMMENT_TABLE.text)
+        COMMENT = COMMENT_SEARCH.group(1) if COMMENT_SEARCH is not None else None
+        return (SHELTER_SINCE, COMMENT)
+
     def PrepareData(self, DATA: DataFrame) -> None:
         data = DATA.copy()
         data.Name = data.Name.map(lambda x: x.strip("*").lower(), na_action="ignore")
@@ -68,23 +85,6 @@ class PETS:
             NEW_DATA = self.PrepareData(self.DATAFRAME)
         NEW_DATA.to_csv(DATA_PATH, mode="a", header=not EXISTS)
         return None
-
-    def VisitLink(self, LINK: str) -> tuple[str]:
-        LINK_SOUP = BeautifulSoup(requests.get(LINK).content, "html.parser")
-        DETAIL_TABLES = LINK_SOUP.find_all("table", attrs={"class": "DetailTable"})
-        DESCRIPTION_TABLE = DETAIL_TABLES[0]
-        SHELTER_SINCE_SEARCH = re.search(
-            r"I have been at the shelter since(.+?)[.]", DESCRIPTION_TABLE.text, flags=re.IGNORECASE
-        )
-        SHELTER_SINCE = (
-            pd.to_datetime(SHELTER_SINCE_SEARCH.group(1)).date()
-            if SHELTER_SINCE_SEARCH is not None
-            else None
-        )
-        COMMENT_TABLE = DETAIL_TABLES[1]
-        COMMENT_SEARCH = re.search(r":(.+)", COMMENT_TABLE.text)
-        COMMENT = COMMENT_SEARCH.group(1) if COMMENT_SEARCH is not None else None
-        return (SHELTER_SINCE, COMMENT)
 
 
 if __name__ == "__main__":
