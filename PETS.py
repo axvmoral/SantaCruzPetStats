@@ -9,7 +9,7 @@ from datetime import datetime
 
 
 class PETS:
-    def __init__(self, URL) -> None:
+    def __init__(self, URL: str) -> None:
         TEMPORARY_SOUP = BeautifulSoup(requests.get(URL).content, "html.parser")
         MATCHES = re.search(r"We found (\d+) matches", TEMPORARY_SOUP.text).group(1)
         NEW_URL = re.sub(r"rows=(\d+)", f"rows={MATCHES}", URL)
@@ -33,7 +33,7 @@ class PETS:
         )
         return None
 
-    def VisitLink(self, LINK: str) -> tuple[str]:
+    def VisitLink(self, LINK: str) -> tuple[datetime, str]:
         LINK_SOUP = BeautifulSoup(requests.get(LINK).content, "html.parser")
         DETAIL_TABLES = LINK_SOUP.find_all("table", attrs={"class": "DetailTable"})
         DESCRIPTION_TABLE = DETAIL_TABLES[0]
@@ -85,10 +85,3 @@ class PETS:
             NEW_DATA = self.PrepareData(self.DATAFRAME)
         NEW_DATA.to_csv(DATA_PATH, mode="a", header=not EXISTS)
         return None
-
-
-if __name__ == "__main__":
-    URL = "https://petharbor.com/results.asp?searchtype=LOST&start=4&friends=1&samaritans=1&nosuccess=0&rows=139&imght=120&imgres=detail&tWidth=200&view=sysadm.v_sncr&nobreedreq=1&bgcolor=ffffff&text=000000&fontface=arial&fontsize=10&col_hdr_bg=c0c0c0&SBG=c0c0c0&miles=20&shelterlist=%27SNCR%27,%27SNCR1%27&atype=&where=type_CAT&PAGE=1"
-    pets = PETS(URL)
-    pets.UpdateData("Datasets/lost_cats.csv")
-    df = pd.read_csv("Datasets/lost_cats.csv")
